@@ -269,7 +269,7 @@ class MataUangScreen(Screen):
         dari, ke = self.sp_dari.text, self.sp_ke.text
         self.sp_dari.text, self.sp_ke.text = ke, dari
 
-        def proses_konversi(self):
+    def proses_konversi(self):
         dari = self.sp_dari.text
         ke = self.sp_ke.text
         nominal = self.txt_nominal.text.strip()
