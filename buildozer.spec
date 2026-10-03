@@ -9,8 +9,7 @@ source.include_exts = py,png,jpg,kv,atlas
 
 version = 1.0
 
-requirements = python3,kivy,requests,charset-normalizer==3.4.9
-
+requirements = hostpython3==3.12.9,python3==3.12.9,kivy,requests
 orientation = portrait
 fullscreen = 0
 
