@@ -22,6 +22,7 @@ android.accept_sdk_license = True
 
 android.debug_artifact = apk
 
+p4a.branch = master
 
 [buildozer]
 
