@@ -1,6 +1,9 @@
 import math
-import requests
+import json
+import ssl
 import threading
+import urllib.request
+import certifi
 
 from kivy.app import App
 from kivy.clock import Clock
@@ -266,27 +269,57 @@ class MataUangScreen(Screen):
         dari, ke = self.sp_dari.text, self.sp_ke.text
         self.sp_dari.text, self.sp_ke.text = ke, dari
 
-    def proses_konversi(self):
-        threading.Thread(target=self._fetch_kurs).start()
+        def proses_konversi(self):
+        dari = self.sp_dari.text
+        ke = self.sp_ke.text
+        nominal = self.txt_nominal.text.strip()
 
-    def _fetch_kurs(self):
+        threading.Thread(
+            target=self._fetch_kurs,
+            args=(dari, ke, nominal),
+            daemon=True
+        ).start()
+
+    def _fetch_kurs(self, dari, ke, nominal):
         try:
-            d, k = self.sp_dari.text, self.sp_ke.text
-            res = requests.get(f"https://open.er-api.com/v6/latest/{d}", timeout=5).json()
-            rate = res['rates'][k]
+            url = f"https://open.er-api.com/v6/latest/{dari}"
 
-            text_kurs = f"Info Kurs: 1 {d} = {rate:,.2f} {k}"
-            if self.txt_nominal.text.strip():
-                val = float(self.txt_nominal.text)
+            req = urllib.request.Request(
+                url,
+                headers={"User-Agent": "KalkulatorSerbaguna/1.0"}
+            )
+
+            context = ssl.create_default_context(
+                cafile=certifi.where()
+            )
+
+            with urllib.request.urlopen(
+                req,
+                timeout=8,
+                context=context
+            ) as response:
+                data = json.loads(
+                    response.read().decode("utf-8")
+                )
+
+            rate = float(data["rates"][ke])
+
+            text_kurs = f"Info Kurs: 1 {dari} = {rate:,.2f} {ke}"
+
+            if nominal:
+                val = float(nominal)
                 hasil = val * rate
-                text_hasil = f"Hasil ({k}):\n{hasil:,.2f}"
+                text_hasil = f"Hasil ({ke}):\n{hasil:,.2f}"
             else:
                 text_hasil = "Hasil:\n-"
+
         except Exception:
             text_kurs = "Info Kurs: -"
             text_hasil = "Gagal Koneksi / Input Salah"
 
-        Clock.schedule_once(lambda dt: self._update_ui(text_kurs, text_hasil))
+        Clock.schedule_once(
+            lambda dt: self._update_ui(text_kurs, text_hasil)
+        )
 
     def _update_ui(self, text_kurs, text_hasil):
         self.lbl_kurs.text = text_kurs
